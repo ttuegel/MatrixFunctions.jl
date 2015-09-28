@@ -3,6 +3,9 @@ module MatrixFunctions
 import Base: size, full, eltype, show, showarray
 import Base.LinAlg: (*), issym, ishermitian, isposdef
 
+export AbstractMatrixFunction
+export MatrixFunction
+
 abstract AbstractMatrixFunction{Td} <: AbstractSparseMatrix{Td, Int}
 
 immutable MatrixFunction{Td} <: AbstractMatrixFunction{Td}
