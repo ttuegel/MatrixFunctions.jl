@@ -27,10 +27,15 @@ function MatrixFunction{Td}(nrow :: Int, ncol :: Int, eltype :: Type{Td},
                    apply)
 end
 
-MatrixFunction(M :: AbstractMatrix) =
+function MatrixFunction(M :: AbstractMatrix)
+    function apply(dst, src)
+        dst = M * src
+        return dst
+    end
     MatrixFunction(size(M, 1), size(M, 2), eltype(M),
                    issym(M), ishermitian(M), isposdef(M),
-                   v -> M * v)
+                   apply)
+end
 
 size{Td}(f :: MatrixFunction{Td}) = (f.nrow, f.ncol)
 
@@ -68,7 +73,7 @@ function full(f :: MatrixFunction)
     test = zeros(T, size(f, 2))
     for c = 1:size(f, 2)
         test[c] = 1
-        result[:, c] = f.apply(test)
+        f.apply(result[:, c], test)
         test[c] = 0
     end
     return result
@@ -78,7 +83,9 @@ function (*){Td}(g :: MatrixFunction{Td}, f :: MatrixFunction{Td})
     @assert g.ncol == f.nrow
     sym = false # generally
     hermitian = false # generally
-    apply = v -> g.apply(f.apply(v))
+    function apply(dst, src)
+        g.apply(dst, f.apply(f.nrow, src))
+    end
     MatrixFunction (g.nrow, f.ncol, sym, hermitian, apply)
 end
 
@@ -86,14 +93,14 @@ function (*){Td}(f :: MatrixFunction{Td}, M :: AbstractMatrix{Td})
     @assert f.ncol == size(M, 1)
     result = zeros(Td, (f.nrow, size(M, 2)))
     for c = 1:size(M, 2)
-        result[:, c] = f.apply(M[:, c])
+        f.apply(result[:, c], M[:, c])
     end
     return result
 end
 
 function (*){Td}(f :: MatrixFunction{Td}, v :: AbstractVector{Td})
     @assert f.ncol == size(v, 1)
-    return f.apply(v)
+    f.apply(zeros(Td, f.nrow), v)
 end
 
 end # module
