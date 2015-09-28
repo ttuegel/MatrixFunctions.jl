@@ -96,6 +96,10 @@ function (*){T, S}(f :: MatrixFunction{T}, M :: AbstractMatrix{S})
     return result
 end
 
+function (*){T, S}(M :: Matrix{S}, f :: MatrixFunction{T})
+    MatrixFunction(M) * f
+end
+
 function (*){T, S}(f :: MatrixFunction{T}, v :: AbstractVector{S})
     @assert f.ncol == size(v, 1)
     return f.apply(v)
