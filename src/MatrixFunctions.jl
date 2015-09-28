@@ -74,24 +74,24 @@ function full(f :: MatrixFunction)
     return result
 end
 
-function (*){Td}(g :: MatrixFunction{Td}, f :: MatrixFunction{Td})
+function (*){T, S}(g :: MatrixFunction{T}, f :: MatrixFunction{S})
     @assert g.ncol == f.nrow
-    sym = false # generally
-    hermitian = false # generally
+    TS = promote_type(arithtype(T), arithtype(S))
     apply = v -> g.apply(f.apply(v))
-    MatrixFunction (g.nrow, f.ncol, sym, hermitian, apply)
+    MatrixFunction(g.nrow, f.ncol, TS, apply)
 end
 
-function (*){Td}(f :: MatrixFunction{Td}, M :: AbstractMatrix{Td})
+function (*){T, S}(f :: MatrixFunction{T}, M :: AbstractMatrix{S})
     @assert f.ncol == size(M, 1)
-    result = zeros(Td, (f.nrow, size(M, 2)))
+    TS = promote_type(arithtype(T), arithtype(S))
+    result = zeros(TS, (f.nrow, size(M, 2)))
     for c = 1:size(M, 2)
         result[:, c] = f.apply(M[:, c])
     end
     return result
 end
 
-function (*){Td}(f :: MatrixFunction{Td}, v :: AbstractVector{Td})
+function (*){T, S}(f :: MatrixFunction{T}, v :: AbstractVector{S})
     @assert f.ncol == size(v, 1)
     return f.apply(v)
 end
