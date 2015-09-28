@@ -32,6 +32,11 @@ MatrixFunction(M :: AbstractMatrix) =
                    issym(M), ishermitian(M), isposdef(M),
                    v -> M * v)
 
+MatrixFunction(u :: AbstractVector) =
+    MatrixFunction(1, length(u, 2), eltype(u),
+                   false, false, false,
+                   v -> u' * v)
+
 size{Td}(f :: MatrixFunction{Td}) = (f.nrow, f.ncol)
 
 issym{Td}(f :: MatrixFunction{Td}) = f.sym
