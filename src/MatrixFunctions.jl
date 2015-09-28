@@ -1,10 +1,13 @@
 module MatrixFunctions
 
 import Base: size, full, eltype, show, showarray
-import Base.LinAlg: (*), issym, ishermitian, isposdef
+import Base.LinAlg: (*), (+), (.*), issym, ishermitian, isposdef
 
 export AbstractMatrixFunction
 export MatrixFunction
+
+arithtype(T) = T
+arithtype(::Type{Bool}) = Int
 
 abstract AbstractMatrixFunction{Td} <: AbstractSparseMatrix{Td, Int}
 
@@ -108,4 +111,32 @@ end
 function (*){T, S}(v :: Vector{S}, f :: MatrixFunction{T})
     MatrixFunction(v) * f
 end
+
+function (+){T, S}(f :: MatrixFunction{T}, g :: MatrixFunction{S})
+    @assert f.nrow == g.nrow
+    @assert f.ncol == g.ncol
+    TS = promote_type(arithtype(T), arithtype(S))
+    function sum_apply(src)
+        dst = g.apply(src)
+        dst += f.apply(src)
+    end
+    MatrixFunction(f.nrow, f.ncol, TS, sum_apply;
+                   sym = f.sym && g.sym,
+                   hermitian = f.hermitian && g.hermitian,
+                   posdef = f.posdef && g.posdef)
+end
+
+function (.*){T <: Number, S}(scalar :: T, f :: MatrixFunction{S})
+    TS = promote_type(arithtype(T), arithtype(S))
+    function scalar_apply(src)
+        dst = f.apply(src)
+        scale!(scalar, dst)
+        return dst
+    end
+    MatrixFunction(f.nrow, f.ncol, TS, scalar_apply;
+                   sym = f.sym,
+                   hermitian = f.hermitian && isreal(scalar),
+                   posdef = f.posdef && isreal(scalar) && scalar > 0)
+end
+
 end # module
