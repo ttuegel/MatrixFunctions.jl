@@ -105,4 +105,7 @@ function (*){T, S}(f :: MatrixFunction{T}, v :: AbstractVector{S})
     return f.apply(v)
 end
 
+function (*){T, S}(v :: Vector{S}, f :: MatrixFunction{T})
+    MatrixFunction(v) * f
+end
 end # module
